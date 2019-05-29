@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html >
+<head>
+<meta charset="utf-8" />
+<title>can play advertise</title>
+<link rel="stylesheet" href="./reset.css">
+<style>
+    html, body {
+        width: 100%;
+        height: 100%;
+    }
+    .show {
+        display: block;
+    }
+    .hide {
+        display: none;
+    }
+    .mask{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        background-color: rgba(0,0,0,.1);
+    }
+    .mask .img-box{
+       position: absolute;
+       top: calc(50% - 25px);
+       left: calc(50% - 25px);
+    }
+    .mask .img-box img {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+    }
+    .img-box .img {
+        width: 100%;
+    }
+</style>
+<script>
+    function getScript(e,i){
+    var n=document.createElement("script");
+    n.type="text/javascript",n.async=!0,i&&(n.onload=i),n.src=e,document.head.appendChild(n);
+    }
+    function parseMessage(e){
+    var i=e.data,n=i.indexOf(DOLLAR_PREFIX+RECEIVE_MSG_PREFIX);
+        if(-1!==n){
+        var t=i.slice(n+2);
+        return getMessageParams(t);
+        }
+    return{}
+    }
+        function getMessageParams(e){
+        var i,n=[],t=e.split("/"),a=t.length;
+        if(-1===e.indexOf(RECEIVE_MSG_PREFIX)){
+            if(a>=2&&a%2===0){
+                for(i=0;a>i ;i+=2)
+                n[t[i]]=t.length<i+1?null:decodeURIComponent(t[i+1]);
+            }
+        }
+        else{
+            var o=e.split(RECEIVE_MSG_PREFIX);
+            void 0!==o[1]&&(n=JSON&&JSON.parse(o[1]))
+        }
+        return n}function getDapi(e){
+            var i=parseMessage(e);
+            if(!i||i.name===GET_DAPI_URL_MSG_NAME)
+                {
+                var n=i.data;getScript(n,onDapiReceived);
+                }
+            }
+        function invokeDapiListeners(){
+            for(var e in dapiEventsPool)
+                dapiEventsPool.hasOwnProperty(e)&&dapi.addEventListener(e,dapiEventsPool[e]);
+        }
+        function onDapiReceived(){
+            dapi=window.dapi,window.removeEventListener("message",getDapi),invokeDapiListeners();
+        }
+        function init(){
+        window.dapi.isDemoDapi&&(window.parent.postMessage(DOLLAR_PREFIX+SEND_MSG_PREFIX+JSON.stringify({state:"getDapiUrl"}),"*"),window.addEventListener("message",getDapi,!1));
+        }
+        var DOLLAR_PREFIX="$$",RECEIVE_MSG_PREFIX="DAPI_SERVICE:",SEND_MSG_PREFIX="DAPI_AD:",GET_DAPI_URL_MSG_NAME="connection.getDapiUrl",dapiEventsPool={},dapi=window.dapi||{
+            isReady:function(){return!1},addEventListener:function(e,i){dapiEventsPool[e]=i},removeEventListener:function(e){delete dapiEventsPool[e]},isDemoDapi:!0};init();
+</script>
+</head>
+<body>
+    <div class="mask" id="mask">
+        <div class="img-box">
+            <img src="./img/loading.gif" alt="" />
+        </div>
+    </div>
+    <div class="img-box">
+        <img id="image" class="img" onclick='next()' src='./img/1.jpg' />
+    </div>
+    <!-- 进度条 -->
+    <div id="page1_text"></div>
+</body>
+<script type="text/javascript">
+    var imgAll = [
+        './img/1.jpg',
+        './img/2.jpg',
+        './img/3.jpg',
+        './img/4.jpg',
+        './img/5.jpg',
+        './img/6.jpg'
+    ];
+    var id = 1;
+    var image = document.getElementById("image");
+    var mask = document.getElementById('mask');
+    var page1_text = document.getElementById('page1_text');
+    var imgStart = 0;
+    var imgLen = imgAll.length;
+    var bfb = 0;
+   
+    loadAllImage()
+    function loadAllImage() {
+        if(imgStart >= imgLen){
+            console.log('图片加载完成，图片总数量：' + imgStart);
+            setTimeout(() => {
+                addClass(mask, 'hide');
+            }, 1000)
+            
+            return;
+        }
+        loadImg(imgStart)
+    }
+    function loadImg(imgKey){
+        var curImg = imgAll[imgKey];
+        var loadImg = new Image();
+        loadImg.src = curImg;
+        loadImg.onload = function(){
+            imgStart++;
+            loadAllImage();
+            bfb = parseInt(imgStart / imgLen * 100);
+            console.log(bfb + '%');
+            page1_text.innerHTML = `${bfb}%`;
+        }
+    }
+    
+    function next(){
+        id = (id + 1) % 7;
+        if(id==0){id =1; };
+        image.src = './img/' + id + '.jpg'; //动态设定src
+        console.log(id);
+    }
+    function hasClass(elem, cls) {
+        cls = cls || '';
+        if (cls.replace(/\s/g, '').length == 0) return false; //当cls没有参数时，返回false
+        return new RegExp(' ' + cls + ' ').test(' ' + elem.className + ' ');
+    }
+    function addClass(ele, cls) {
+        if (!hasClass(ele, cls)) {
+            ele.className = ele.className == '' ? cls : ele.className + ' ' + cls;
+        }
+    } 
+</script>
+</html> 
+
